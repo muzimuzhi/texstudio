@@ -100,6 +100,7 @@ LatexPackage loadCwlFile(const QString fileName, LatexCompleterConfig *config, Q
 		QStringList specialTreatment;
 		specialTreatment << "color";
 		QString keyvals;
+		QStringList l_cmds;
 		while (!stream.atEnd()) {
 			line = stream.readLine().trimmed();
 			if (line.startsWith("#endif")) {
@@ -126,17 +127,18 @@ LatexPackage loadCwlFile(const QString fileName, LatexCompleterConfig *config, Q
 			if (line.startsWith("#keyvals:")) {
 				// start reading keyvals
 				keyvals = line.mid(9);
+				l_cmds = keyvals.split(',');
 				continue;
 			}
 			if (line.startsWith("#endkeyvals")) {
 				// end of reading keyvals
 				keyvals.clear();
+				l_cmds.clear();
 				continue;
 			}
 
 			if (!keyvals.isEmpty() && !line.startsWith("#")) {
 				// read keyval (name stored in "keyvals")
-				QStringList l_cmds=keyvals.split(',');
 				QString key;
 				CommandDescription cd = extractCommandDefKeyVal(line, key);
 				for(const QString &elem:l_cmds){
