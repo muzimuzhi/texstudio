@@ -164,8 +164,16 @@ jobs:
         # but prevents the homebrew install from succeeding
         rm -f /usr/local/bin/2to3
         brew update > brew_update.log || { echo "::error::Updating homebrew failed"; cat brew_update.log; exit 1; }
-        # install poppler with qt5
-        brew install poppler
+        # in case homebrew's poppler depends on qt6, apply changes from
+        #   https://github.com/Homebrew/homebrew-core/commit/eeb333044a1d1522e457ffd328a3f86e7b0e0157
+        POPPLER_PATH="./travis-ci/mac/poppler.rb"
+        cp $(brew --repo homebrew/core)/Formula/poppler.rb $POPPLER_PATH
+        # the empty pair of quotes are necessary for sed on macOS
+        sed -i '' 's/depends_on "qt"/depends_on "qt@5"/g' $POPPLER_PATH
+        sed -i '' 's/-DENABLE_QT5=OFF/-DENABLE_QT5=ON/g' $POPPLER_PATH
+        sed -i '' 's/-DENABLE_QT6=ON/-DENABLE_QT6=OFF/g' $POPPLER_PATH
+        sed -i '' 's/libpoppler-qt6.dylib/libpoppler-qt5.dylib/g' $POPPLER_PATH
+        brew install --formula $POPPLER_PATH
 
     - name: Configure
       run: /usr/local/opt/qt5/bin/qmake texstudio.pro CONFIG-=debug
