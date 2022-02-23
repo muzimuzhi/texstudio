@@ -312,21 +312,20 @@ jobs:
       # this will download all artifacts
       uses: actions/download-artifact@v2
 
-    - name: Display structure of downloaded files
-      run: ls -R
+    - name: Store list of downloaded files
+      run: |
+        FILE_LIST=$(find . -type f)
+        echo "$FILE_LIST"
+        # set the `file_list` env variable to the multiline string, using `EOF` as a delimiter
+        echo "file_list<<<EOF" >> $GITHUB_ENV
+        echo "$FILE_LIST" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
 
     - name: Batch Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
-        files: |
-          texstudio-win-qt6-exe/texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-qt6.exe
-          texstudio-win-qt6-zip/texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-portable-qt6.zip
-          texstudio-win-exe/texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-qt5.exe
-          texstudio-win-zip/texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-portable-qt5.zip
-          texstudio-linux/texstudio-${{ steps.package.outputs.GIT_VERSION }}-x86_64.AppImage
-          texstudio-osx/texstudio-${{ steps.package.outputs.GIT_VERSION }}-osx.dmg
-        # texstudio-osx-qt5/texstudio-${{ steps.package.outputs.GIT_VERSION }}-osx-qt5.dmg
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
+        files: ${{ env.file_list }}
+      # env:
+      #   GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
