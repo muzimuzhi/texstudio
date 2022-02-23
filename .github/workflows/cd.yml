@@ -304,21 +304,29 @@ jobs:
 
 
   release:
+    name: Release
     needs: [build-win, build-linux-win, build-linux-release, macosx] # macosx-qt5 is disabled
     runs-on: ubuntu-latest
     steps:
-    - name: Release
+    - name: Download Artifacts
+      # this will download all artifacts
+      uses: actions/download-artifact@v2
+
+    - name: Display structure of downloaded files
+      run: ls -R
+
+    - name: Batch Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
         files: |
-          texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-qt6.exe
-          texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-portable-qt6.zip
-          texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-qt5.exe
-          texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-portable-qt5.zip
-          texstudio-${{ steps.package.outputs.GIT_VERSION }}-x86_64.AppImage
-          texstudio-${{ steps.package.outputs.GIT_VERSION }}-osx.dmg
-        # texstudio-${{ steps.package.outputs.GIT_VERSION }}-osx-qt5.dmg
+          texstudio-win-qt6-exe/texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-qt6.exe
+          texstudio-win-qt6-zip/texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-portable-qt6.zip
+          texstudio-win-exe/texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-qt5.exe
+          texstudio-win-zip/texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-portable-qt5.zip
+          texstudio-linux/texstudio-${{ steps.package.outputs.GIT_VERSION }}-x86_64.AppImage
+          texstudio-osx/texstudio-${{ steps.package.outputs.GIT_VERSION }}-osx.dmg
+        # texstudio-osx-qt5/texstudio-${{ steps.package.outputs.GIT_VERSION }}-osx-qt5.dmg
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
