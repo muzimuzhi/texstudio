@@ -316,8 +316,9 @@ jobs:
       run: |
         FILE_LIST=$(find . -type f)
         echo "$FILE_LIST"
-        # set the `file_list` env variable to the multiline string, using `EOF` as a delimiter
-        echo "file_list<<<EOF" >> $GITHUB_ENV
+        # set the `file_list` env variable to the multiline `FILE_LIST`, 
+        # using `EOF` as a delimiter
+        echo "file_list<<EOF" >> $GITHUB_ENV
         echo "$FILE_LIST" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
 
