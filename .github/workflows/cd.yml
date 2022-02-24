@@ -49,6 +49,16 @@ jobs:
           name: texstudio-win-qt6-exe
           path: texstudio-win-qt6-${{ steps.package.outputs.VERSION_NAME }}.exe
 
+      - name: Upload release file(s)
+        uses: actions/upload-artifact@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: release
+          path: |
+            texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-qt6.exe
+            texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-portable-qt6.zip
+
+
   build-linux-win:
     name: win build (mxe)
     runs-on: ubuntu-latest
@@ -134,6 +144,15 @@ jobs:
         name: texstudio-win-exe
         path: texstudio-win-${{ steps.package.outputs.VERSION_NAME }}.exe
 
+    - name: Upload release file(s)
+      uses: actions/upload-artifact@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        name: release
+        path: |
+          texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-qt5.exe
+          texstudio-${{ steps.package.outputs.GIT_VERSION }}-win-portable-qt5.zip
+
 
 ###################################
 
@@ -183,6 +202,13 @@ jobs:
       with:
         name: texstudio-linux
         path: texstudio-linux-${{ steps.package.outputs.VERSION_NAME }}-x86_64.AppImage
+
+    - name: Upload release file(s)
+      uses: actions/upload-artifact@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        name: release
+        path: texstudio-${{ steps.package.outputs.GIT_VERSION }}-x86_64.AppImage
 
 
 ############################
@@ -240,6 +266,13 @@ jobs:
       with:
         name: texstudio-osx
         path: texstudio-osx-${{ steps.package.outputs.VERSION_NAME }}.dmg
+
+    - name: Upload release file(s)
+      uses: actions/upload-artifact@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        name: release
+        path: texstudio-${{ steps.package.outputs.GIT_VERSION }}-osx.dmg
 
 
   macosx-qt5:
@@ -303,14 +336,17 @@ jobs:
         path: texstudio-osx-qt5-${{ steps.package.outputs.VERSION_NAME }}.dmg
 
 
+
   release:
     name: Release
     needs: [build-win, build-linux-win, build-linux-release, macosx] # macosx-qt5 is disabled
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
-    - name: Download Artifacts
-      # this will download all artifacts
+    - name: Download temp artifact
       uses: actions/download-artifact@v2
+      with:
+        name: release
 
     - name: Store list of downloaded files
       run: |
@@ -322,11 +358,15 @@ jobs:
         echo "$FILE_LIST" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
 
-    - name: Batch Release
+    - name: Batch release
       uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
       with:
         prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
         files: ${{ env.file_list }}
       # env:
       #   GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
+    
+    - name: Delete temp artifact
+      uses: GeekyEggo/delete-artifact@v1.0.0
+      with:
+        name: release
